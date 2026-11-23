@@ -1,0 +1,103 @@
+app:
+  name: "Model Compare Arena"
+  version: "1.0.0"
+  host: "127.0.0.1"
+  port: 8081
+
+default_provider: "groq"
+default_model: "llama-3.3-70b-versatile"
+
+providers:
+  mock:
+    name: "Mock Fast Engine (Offline Demo)"
+    base_url: "mock://local"
+    api_key: "not-needed"
+    enabled: true
+    models:
+      - id: "mock-fast-7b"
+        name: "Mock Fast 7B (Instant)"
+        context_window: 8192
+        input_cost_per_1m: 0.05
+        output_cost_per_1m: 0.15
+      - id: "mock-reasoning-70b"
+        name: "Mock Reasoning 70B (Deep)"
+        context_window: 32768
+        input_cost_per_1m: 0.50
+        output_cost_per_1m: 0.80
+
+  groq:
+    name: "Groq Cloud"
+    base_url: "https://api.groq.com/openai/v1"
+    api_key_env: "GROQ_API_KEY"
+    api_key: ""
+    enabled: true
+    models:
+      - id: "llama-3.3-70b-versatile"
+        name: "Llama 3.3 70B Versatile"
+        context_window: 128000
+        input_cost_per_1m: 0.59
+        output_cost_per_1m: 0.79
+      - id: "llama-3.1-8b-instant"
+        name: "Llama 3.1 8B Instant"
+        context_window: 128000
+        input_cost_per_1m: 0.05
+        output_cost_per_1m: 0.08
+      - id: "mixtral-8x7b-32768"
+        name: "Mixtral 8x7B"
+        context_window: 32768
+        input_cost_per_1m: 0.24
+        output_cost_per_1m: 0.24
+
+  together:
+    name: "Together AI"
+    base_url: "https://api.together.xyz/v1"
+    api_key_env: "TOGETHER_API_KEY"
+    api_key: ""
+    enabled: true
+    models:
+      - id: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
+        name: "Llama 3.1 70B Turbo"
+        context_window: 131072
+        input_cost_per_1m: 0.88
+        output_cost_per_1m: 0.88
+      - id: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+        name: "Llama 3.1 8B Turbo"
+        context_window: 131072
+        input_cost_per_1m: 0.18
+        output_cost_per_1m: 0.18
+
+  openrouter:
+    name: "OpenRouter"
+    base_url: "https://openrouter.ai/api/v1"
+    api_key_env: "OPENROUTER_API_KEY"
+    api_key: ""
+    enabled: true
+    models:
+      - id: "meta-llama/llama-3.3-70b-instruct"
+        name: "Llama 3.3 70B Instruct"
+        context_window: 131072
+        input_cost_per_1m: 0.70
+        output_cost_per_1m: 0.80
+      - id: "deepseek/deepseek-chat"
+        name: "DeepSeek V3"
+        context_window: 64000
+        input_cost_per_1m: 0.14
+        output_cost_per_1m: 0.28
+
+  openai:
+    name: "OpenAI"
+    base_url: "https://api.openai.com/v1"
+    api_key_env: "OPENAI_API_KEY"
+    api_key: ""
+    enabled: true
+    models:
+      - id: "gpt-4o-mini"
+        name: "GPT-4o Mini"
+        context_window: 128000
+        input_cost_per_1m: 0.15
+        output_cost_per_1m: 0.60
+      - id: "gpt-4o"
+        name: "GPT-4o"
+        context_window: 128000
+        input_cost_per_1m: 2.50
+        output_cost_per_1m: 10.00

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Compare Arena</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: { 950: '#070a11', 900: '#0c121e', 850: '#111928', 800: '#1b2436', 700: '#27334d' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .cursor-blink::after { content: "▋"; color: #6366f1; animation: blink 1s infinite; margin-left: 2px; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  </style>
+</head>
+<body class="bg-surface-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="border-b border-surface-800 bg-surface-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="swords" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <span class="font-bold text-lg text-white">Model Compare Arena</span>
+          <span class="ml-2 px-2 py-0.5 text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">Standalone Repo</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs text-slate-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>SSE Streaming Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-surface-800">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          Side-by-Side Model Arena
+        </h1>
+        <p class="text-sm text-slate-400 mt-1">
+          Broadcast a prompt across 2-3 models concurrently. Compare live latency, tokens/sec velocity, and exact cost.
+        </p>
+      </div>
+      <!-- Preset Pills -->
+      <div class="flex items-center space-x-2 overflow-x-auto text-xs">
+        <span class="text-slate-500 font-medium">Presets:</span>
+        <button onclick="setPreset('quantum')" class="px-2.5 py-1 rounded-md bg-surface-850 hover:bg-surface-800 text-slate-300 border border-surface-700">Quantum Physics</button>
+        <button onclick="setPreset('async')" class="px-2.5 py-1 rounded-md bg-surface-850 hover:bg-surface-800 text-slate-300 border border-surface-700">Async vs Sync</button>
+        <button onclick="setPreset('riddle')" class="px-2.5 py-1 rounded-md bg-surface-850 hover:bg-surface-800 text-slate-300 border border-surface-700">Logic Riddle</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="bg-surface-900 border border-surface-800 rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-indigo-400 flex items-center gap-1.5 mb-1.5">
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Candidate Model A
+          </label>
+          <select id="model-1" class="w-full bg-surface-850 border border-surface-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 mb-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Candidate Model B
+          </label>
+          <select id="model-2" class="w-full bg-surface-850 border border-surface-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-purple-400 flex items-center gap-1.5 mb-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span> Candidate Model C (Optional)
+          </label>
+          <select id="model-3" class="w-full bg-surface-850 border border-surface-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"></select>
+        </div>
+      </div>
+
+      <div class="relative">
+        <textarea id="prompt-input" rows="3" class="w-full bg-surface-850 border border-surface-700 rounded-xl p-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none" placeholder="Enter your prompt here to run side-by-side battle..."></textarea>
+        <div class="flex items-center justify-between pt-2">
+          <div class="text-xs text-slate-400 flex items-center gap-3">
+            <span>⚡ Live TTFT</span>
+            <span>🚀 Velocity Gauge</span>
+            <span>💰 Cost Calculator</span>
+          </div>
+          <button onclick="runBattle()" id="battle-btn" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium text-xs shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all">
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i> Run Arena Battle
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Cards Grid -->
+    <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+      <!-- Card 0 -->
+      <div id="card-0" class="bg-surface-900 border border-surface-800 rounded-2xl flex flex-col overflow-hidden shadow-xl">
+        <div class="px-5 py-3.5 bg-surface-850 border-b border-surface-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            <span id="title-0" class="font-semibold text-xs text-white">Model A</span>
+          </div>
+          <span id="status-0" class="text-[11px] px-2 py-0.5 rounded-full bg-surface-700 text-slate-300">Ready</span>
+        </div>
+        <div id="body-0" class="p-5 flex-1 text-xs text-slate-300 leading-relaxed overflow-y-auto max-h-96 whitespace-pre-wrap">Output will stream here...</div>
+        <div class="p-3 bg-surface-850/60 border-t border-surface-800 grid grid-cols-4 gap-2 text-center text-xs">
+          <div><div class="text-slate-500 text-[10px]">TTFT</div><div id="ttft-0" class="font-bold text-slate-200">--</div></div>
+          <div><div class="text-slate-500 text-[10px]">Latency</div><div id="latency-0" class="font-bold text-slate-200">--</div></div>
+          <div><div class="text-slate-500 text-[10px]">Speed</div><div id="tps-0" class="font-bold text-emerald-400">-- tok/s</div></div>
+          <div><div class="text-slate-500 text-[10px]">Cost</div><div id="cost-0" class="font-bold text-indigo-400">--</div></div>
+        </div>
+      </div>
+
+      <!-- Card 1 -->
+      <div id="card-1" class="bg-surface-900 border border-surface-800 rounded-2xl flex flex-col overflow-hidden shadow-xl">
+        <div class="px-5 py-3.5 bg-surface-850 border-b border-surface-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span id="title-1" class="font-semibold text-xs text-white">Model B</span>
+          </div>
+          <span id="status-1" class="text-[11px] px-2 py-0.5 rounded-full bg-surface-700 text-slate-300">Ready</span>
+        </div>
+        <div id="body-1" class="p-5 flex-1 text-xs text-slate-300 leading-relaxed overflow-y-auto max-h-96 whitespace-pre-wrap">Output will stream here...</div>
+        <div class="p-3 bg-surface-850/60 border-t border-surface-800 grid grid-cols-4 gap-2 text-center text-xs">
+          <div><div class="text-slate-500 text-[10px]">TTFT</div><div id="ttft-1" class="font-bold text-slate-200">--</div></div>
+          <div><div class="text-slate-500 text-[10px]">Latency</div><div id="latency-1" class="font-bold text-slate-200">--</div></div>
+          <div><div class="text-slate-500 text-[10px]">Speed</div><div id="tps-1" class="font-bold text-emerald-400">-- tok/s</div></div>
+          <div><div class="text-slate-500 text-[10px]">Cost</div><div id="cost-1" class="font-bold text-indigo-400">--</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+    let allModels = [];
+
+    async function init() {
+      const res = await fetch('/api/models');
+      const data = await res.json();
+      allModels = data.models || [];
+      populateSelectors();
+    }
+
+    function populateSelectors() {
+      ['model-1', 'model-2', 'model-3'].forEach((sId, idx) => {
+        const s = document.getElementById(sId);
+        s.innerHTML = sId === 'model-3' ? '<option value="">(None - Compare 2 Models)</option>' : '';
+        allModels.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = `${m.provider}:${m.model_id}`;
+          opt.textContent = `${m.provider_name}: ${m.model_name}`;
+          s.appendChild(opt);
+        });
+        if (sId === 'model-1') s.selectedIndex = 0;
+        if (sId === 'model-2') s.selectedIndex = Math.min(1, allModels.length - 1);
+      });
+    }
+
+    function setPreset(type) {
+      const presets = {
+        'quantum': "Explain quantum entanglement in 2 concise paragraphs suitable for a curious high school student.",
+        'async': "In Python, when should an engineer choose asyncio over multiprocessing or threading? Provide concrete CPU vs I/O bound rules.",
+        'riddle': "A farmer needs to cross a river with a wolf, a goat, and a cabbage. The boat can only carry the farmer and one item. How does he cross safely?"
+      };
+      document.getElementById('prompt-input').value = presets[type] || "";
+    }
+
+    async function runBattle() {
+      const prompt = document.getElementById('prompt-input').value.trim();
+      if (!prompt) return alert("Please enter a prompt.");
+
+      const m1 = document.getElementById('model-1').value;
+      const m2 = document.getElementById('model-2').value;
+      const m3 = document.getElementById('model-3').value;
+
+      const targets = [];
+      if (m1) { const [p, m] = m1.split(':'); targets.push({ provider: p, model: m }); }
+      if (m2) { const [p, m] = m2.split(':'); targets.push({ provider: p, model: m }); }
+      if (m3) { const [p, m] = m3.split(':'); targets.push({ provider: p, model: m }); }
+
+      targets.forEach((t, i) => {
+        document.getElementById(`title-${i}`).textContent = `${t.provider.toUpperCase()} / ${t.model}`;
+        document.getElementById(`status-${i}`).textContent = "Streaming...";
+        document.getElementById(`body-${i}`).textContent = "";
+        document.getElementById(`body-${i}`).classList.add('cursor-blink');
+      });
+
+      const btn = document.getElementById('battle-btn');
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, models: targets })
+        });
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const dataStr = line.replace('data: ', '').trim();
+            if (dataStr === '[DONE]') break;
+            const ev = JSON.parse(dataStr);
+            const idx = ev.model_index;
+            const d = ev.data;
+
+            if (d.text) document.getElementById(`body-${idx}`).textContent = d.text;
+            if (d.ttft) document.getElementById(`ttft-${idx}`).textContent = `${d.ttft}s`;
+            if (d.latency) document.getElementById(`latency-${idx}`).textContent = `${d.latency}s`;
+            if (d.tokens_per_sec) document.getElementById(`tps-${idx}`).textContent = `${d.tokens_per_sec} tok/s`;
+            if (d.is_final) {
+              document.getElementById(`body-${idx}`).classList.remove('cursor-blink');
+              document.getElementById(`status-${idx}`).textContent = "Finished";
+              if (d.cost) document.getElementById(`cost-${idx}`).textContent = d.cost.formatted;
+            }
+          }
+        }
+      } catch (e) {
+        alert("Battle error: " + e);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
